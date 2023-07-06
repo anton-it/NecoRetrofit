@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">NecoRetrofit</string>
+    <string name="hint_name">Name</string>
+    <string name="hint_last_name">Last name</string>
+    <string name="hint_password">Password</string>
 </resources>
