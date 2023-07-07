@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.ak87.necoretrofit.adapter.ProductAdapter
 import com.ak87.necoretrofit.databinding.ActivityMainBinding
 import com.ak87.necoretrofit.retrofit.AuthRequest
 import com.ak87.necoretrofit.retrofit.MainApi
@@ -18,14 +20,20 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var adapter: ProductAdapter
+
     lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater).also { setContentView(it.root) }
 
-        val interceptor =HttpLoggingInterceptor()
+        val interceptor = HttpLoggingInterceptor()
         interceptor.level = HttpLoggingInterceptor.Level.BODY
+
+        adapter = ProductAdapter()
+        binding.rcView.layoutManager = LinearLayoutManager(this)
+        binding.rcView.adapter = adapter
 
         val client = OkHttpClient.Builder()
             .addInterceptor(interceptor)
@@ -39,20 +47,12 @@ class MainActivity : AppCompatActivity() {
 
         val mainApi = retrofit.create(MainApi::class.java)
 
-        binding.button.setOnClickListener {
-            CoroutineScope(Dispatchers.IO).launch {
-                val user = mainApi.auth(
-                    AuthRequest(
-                        binding.etUserName.text.toString(),
-                        binding.etPassword.text.toString()
-                    )
-                )
-                runOnUiThread {
-                    binding.apply {
-                        Picasso.get().load(user.image).into(iv)
-                        tvFirsName.text = user.firstName
-                        tvLastName.text = user.lastName
-                    }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val list = mainApi.getAllProducts()
+            runOnUiThread {
+                binding.apply {
+                    adapter.submitList(list.products)
                 }
             }
         }
