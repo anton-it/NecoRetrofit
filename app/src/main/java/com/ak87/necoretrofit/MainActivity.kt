@@ -2,7 +2,9 @@ package com.ak87.necoretrofit
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
+import android.widget.SearchView
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ak87.necoretrofit.adapter.ProductAdapter
@@ -47,11 +49,32 @@ class MainActivity : AppCompatActivity() {
 
         val mainApi = retrofit.create(MainApi::class.java)
 
+        binding.svSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(p0: String?): Boolean {
+                return true
+            }
+
+            override fun onQueryTextChange(text: String?): Boolean {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val list = text?.let { mainApi.getProductsByName(it) }
+                    runOnUiThread {
+                        binding.apply {
+                            adapter.submitList(list?.products)
+                        }
+                    }
+                }
+                return true
+            }
+
+        })
+
 
         CoroutineScope(Dispatchers.IO).launch {
             val list = mainApi.getAllProducts()
             runOnUiThread {
+                Log.d("MyLog111", "List: " + list.products.toString())
                 binding.apply {
+
                     adapter.submitList(list.products)
                 }
             }
