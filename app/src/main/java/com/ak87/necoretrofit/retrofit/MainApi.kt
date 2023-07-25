@@ -12,6 +12,9 @@ interface MainApi {
     @GET("products")
     suspend fun getAllProducts(): Products
 
-    @GET("products/search")
-    suspend fun getProductsByName(@Query("q") name: String): Products
+    @Headers("Content-Type: application/json")
+    @GET("auth/products/search")
+    suspend fun getProductsByNameAuth(@Header("Authorization") token: String,
+                                  @Query("q") name: String): Products
+
 }

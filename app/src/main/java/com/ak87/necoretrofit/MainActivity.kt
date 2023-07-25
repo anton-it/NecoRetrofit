@@ -11,6 +11,7 @@ import com.ak87.necoretrofit.adapter.ProductAdapter
 import com.ak87.necoretrofit.databinding.ActivityMainBinding
 import com.ak87.necoretrofit.retrofit.AuthRequest
 import com.ak87.necoretrofit.retrofit.MainApi
+import com.ak87.necoretrofit.retrofit.User
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater).also { setContentView(it.root) }
+        supportActionBar?.title = "Guest"
 
         val interceptor = HttpLoggingInterceptor()
         interceptor.level = HttpLoggingInterceptor.Level.BODY
@@ -49,6 +51,20 @@ class MainActivity : AppCompatActivity() {
 
         val mainApi = retrofit.create(MainApi::class.java)
 
+        var user: User? = null
+
+        CoroutineScope(Dispatchers.IO).launch {
+            user = mainApi.auth(
+                AuthRequest(
+                    "kminchelle",
+                    "0lelplR"
+                )
+            )
+            runOnUiThread {
+                supportActionBar?.title = user?.firstName
+            }
+        }
+
         binding.svSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(p0: String?): Boolean {
                 return true
@@ -56,7 +72,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun onQueryTextChange(text: String?): Boolean {
                 CoroutineScope(Dispatchers.IO).launch {
-                    val list = text?.let { mainApi.getProductsByName(it) }
+                    val list = text?.let { mainApi.getProductsByNameAuth(user?.token ?: "", it) }
                     runOnUiThread {
                         binding.apply {
                             adapter.submitList(list?.products)
