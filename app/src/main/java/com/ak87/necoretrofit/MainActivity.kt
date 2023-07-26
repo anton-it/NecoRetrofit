@@ -32,12 +32,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater).also { setContentView(it.root) }
         supportActionBar?.title = "Guest"
 
-        val interceptor = HttpLoggingInterceptor()
-        interceptor.level = HttpLoggingInterceptor.Level.BODY
-
         adapter = ProductAdapter()
         binding.rcView.layoutManager = LinearLayoutManager(this)
         binding.rcView.adapter = adapter
+
+        val interceptor = HttpLoggingInterceptor()
+        interceptor.level = HttpLoggingInterceptor.Level.BODY
 
         val client = OkHttpClient.Builder()
             .addInterceptor(interceptor)
@@ -52,18 +52,6 @@ class MainActivity : AppCompatActivity() {
         val mainApi = retrofit.create(MainApi::class.java)
 
         var user: User? = null
-
-        CoroutineScope(Dispatchers.IO).launch {
-            user = mainApi.auth(
-                AuthRequest(
-                    "kminchelle",
-                    "0lelplR"
-                )
-            )
-            runOnUiThread {
-                supportActionBar?.title = user?.firstName
-            }
-        }
 
         binding.svSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(p0: String?): Boolean {
@@ -83,17 +71,5 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
-
-
-        CoroutineScope(Dispatchers.IO).launch {
-            val list = mainApi.getAllProducts()
-            runOnUiThread {
-                Log.d("MyLog111", "List: " + list.products.toString())
-                binding.apply {
-
-                    adapter.submitList(list.products)
-                }
-            }
-        }
     }
 }
